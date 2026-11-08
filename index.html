@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具箱</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            color-scheme: dark;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+            margin: 5px 0;
+            color: #b0b0b0;
+        }
+        input, select, button {
+            margin: 5px;
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007BFF;
+        }
+        input::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #3a3a3a;
+            border-radius: 5px;
+            color: #e0e0e0;
+        }
+        button {
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .tab-bar {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 4px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2a2a2a;
+        }
+        .tab-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .tab-bar::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+        .tab-bar::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 2px;
+        }
+        .tab-btn {
+            padding: 10px 18px;
+            background-color: #333;
+            color: #b0b0b0;
+            border: 1px solid #444;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s, color 0.2s;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .tab-btn:hover {
+            background-color: #444;
+            color: #e0e0e0;
+        }
+        .tab-btn.active {
+            background-color: #2a2a2a;
+            color: #007BFF;
+            border-color: #007BFF;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* ===== 文本计算器 ===== */
+        .calc-hint {
+            margin: 0 0 10px;
+            color: #8a8a8a;
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+        .calc-input {
+            display: block;
+            width: 100%;
+            min-height: 180px;
+            box-sizing: border-box;
+            resize: vertical;
+            margin: 0 0 12px;
+            padding: 12px 14px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 18px;
+            line-height: 1.6;
+            letter-spacing: 1px;
+            background-color: #1b1b1b;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #e0e0e0;
+        }
+        .calc-input:focus {
+            outline: none;
+            border-color: #007BFF;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        .calc-input::placeholder {
+            color: #666;
+        }
+        .calc-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .calc-actions button {
+            margin: 0;
+            padding: 8px 22px;
+            font-size: 14px;
+        }
+        .calc-actions .btn-ghost {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border: 1px solid #555;
+        }
+        .calc-actions .btn-ghost:hover {
+            background-color: #4a4a4a;
+        }
+        .calc-status {
+            font-size: 13px;
+            color: #8a8a8a;
+        }
+        .calc-status.ok {
+            color: #4ec9b0;
+        }
+        .calc-status.err {
+            color: #ff6b6b;
+        }
+        .calc-result-box {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background-color: #262626;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        .calc-result-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #8a8a8a;
+        }
+        .calc-result {
+            min-height: 32px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 26px;
+            font-weight: bold;
+            line-height: 1.3;
+            color: #4ec9b0;
+            word-break: break-all;
+            user-select: text;
+        }
+        .calc-result.error {
+            font-size: 16px;
+            font-weight: normal;
+            color: #ff6b6b;
+        }
+        /* ===== 计算记录 ===== */
+        .calc-history {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed #444;
+        }
+        .calc-history-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .calc-history-title {
+            margin: 0;
+            font-size: 15px;
+            color: #e0e0e0;
+        }
+        .calc-history-info {
+            font-size: 12px;
+            color: #8a8a8a;
+        }
+        .calc-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .calc-history-empty {
+            margin: 0;
+            font-size: 12.5px;
+            color: #777;
+        }
+        .hist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background-color: #262626;
+            border: 1px solid #3d3d3d;
+            border-left: 3px solid #3d3d3d;
+            border-radius: 5px;
+        }
+        .hist-item.locked {
+            background-color: #2b2820;
+            border-left-color: #d8a23a;
+        }
+        .hist-main {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .hist-expr {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+            color: #d0d0d0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 3.6em;
+            overflow: auto;
+            user-select: text;
+        }
+        .hist-res {
+            margin-top: 2px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+            color: #4ec9b0;
+            word-break: break-all;
+            user-select: text;
+        }
+        .hist-time {
+            margin-top: 3px;
+            font-size: 11px;
+            color: #6f6f6f;
+        }
+        .hist-btns {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 0 0 auto;
+        }
+        .hist-btn {
+            margin: 0;
+            padding: 4px 9px;
+            font-size: 12px;
+            line-height: 1.4;
+            background: none;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            color: #b0b0b0;
+        }
+        .hist-btn:hover {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        .hist-btn.lock-on {
+            color: #d8a23a;
+            border-color: #7a6320;
+        }
+        .hist-btn.lock-on:hover {
+            background-color: #3a3323;
+            color: #e8b95a;
+        }
+        .hist-btn.del:hover {
+            color: #ff6b6b;
+            border-color: #7a3030;
+        }
+        /* ===== cURL 构造 ===== */
+        .card {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+        }
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .card-head select {
+            margin: 0;
+        }
+        .card-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        .link-btn {
+            background: none;
+            border: none;
+            color: #007BFF;
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 13px;
+            margin: 0;
+        }
+        .link-btn:hover {
+            background: none;
+            color: #4da3ff;
+            text-decoration: underline;
+        }
+        .row-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .row-item input,
+        .row-item select {
+            margin: 0;
+            flex: 1 1 0;
+            min-width: 0;
+            font-family: Consolas, "Courier New", monospace;
+        }
+        .row-item input.k {
+            flex: 0 0 220px;
+        }
+        .row-item .del {
+            flex: 0 0 auto;
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 15px;
+            line-height: 1;
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .row-item .del:hover {
+            background: none;
+            color: #ff9a9a;
+        }
+        .row-item .fileflag {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            width: auto;
+            margin: 0;
+            font-size: 12px;
+            color: #b0b0b0;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        #curlMethod {
+            flex: 0 0 110px;
+            font-weight: bold;
+            color: #4ec9b0;
+        }
+        #curlUrl {
+            flex: 1 1 auto;
+            font-family: Consolas, "Courier New", monospace;
+        }
+        .opt-line {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        label.chk {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            width: auto;
+            margin: 0;
+            color: #b0b0b0;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .opt-line .lbl {
+            color: #b0b0b0;
+            font-size: 13px;
+        }
+        .opt-line input[type="number"] {
+            flex: 0 0 80px;
+            margin: 0;
+        }
+        .opt-line input[type="text"] {
+            flex: 1 1 160px;
+            min-width: 120px;
+            margin: 0;
+            font-family: Consolas, "Courier New", monospace;
+        }
+        .curl-out {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #2c3a55;
+            border-radius: 5px;
+            background-color: #1c2434;
+        }
+        .curl-out .card-title {
+            color: #9cdcfe;
+        }
+        .curl-out pre {
+            margin: 0;
+            padding: 12px;
+            background-color: #141a26;
+            border: 1px solid #2c3a55;
+            border-radius: 4px;
+            color: #9cdcfe;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow: auto;
+            max-height: 340px;
+        }
+        #curlStyle {
+            font-size: 13px;
+        }
+        /* ===== 日期跳转 · 月历 ===== */
+        .cal-hint {
+            margin: 0 0 10px;
+            font-size: 12.5px;
+            line-height: 1.6;
+            color: #8a8a8a;
+        }
+        .cal-head {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .cal-head label.cal-label {
+            width: auto;
+            margin: 0;
+        }
+        .cal-head input[type="date"] {
+            margin: 0;
+            font-family: Consolas, "Courier New", monospace;
+        }
+        .cal-head button {
+            margin: 0;
+        }
+        .cal-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0 8px;
+        }
+        button.cal-nav {
+            margin: 0;
+            padding: 4px 12px;
+            font-size: 13px;
+            background-color: #333;
+            color: #b0b0b0;
+            border: 1px solid #555;
+            white-space: nowrap;
+        }
+        button.cal-nav:hover {
+            background-color: #444;
+            color: #e0e0e0;
+        }
+        .cal-title {
+            flex: 1 1 auto;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #9cdcfe;
+        }
+        .cal-weekdays,
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 4px;
+        }
+        .cal-weekdays {
+            margin-bottom: 4px;
+        }
+        .cal-weekdays div {
+            padding: 2px 0;
+            text-align: center;
+            font-size: 12px;
+            color: #8a8a8a;
+        }
+        .cal-weekdays div.we {
+            color: #d98a8a;
+        }
+        .cal-cell {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            min-height: 52px;
+            padding: 4px 2px;
+            box-sizing: border-box;
+            background-color: #262626;
+            border: 1px solid #3a3a3a;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+        .cal-cell:hover {
+            background-color: #343434;
+            border-color: #5a5a5a;
+        }
+        .cal-cell .num {
+            font-size: 15px;
+            line-height: 1.1;
+        }
+        .cal-cell .lunar {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 10px;
+            line-height: 1.2;
+            color: #8a8a8a;
+        }
+        .cal-cell .lunar.term {
+            color: #4ec9b0;
+        }
+        .cal-cell.weekend .num {
+            color: #ff9a9a;
+        }
+        .cal-cell.other {
+            background-color: #232323;
+            opacity: 0.55;
+        }
+        .cal-cell.other .num {
+            color: #6d6d6d;
+        }
+        .cal-cell.today {
+            border-color: #4ec9b0;
+            box-shadow: inset 0 0 0 1px rgba(78, 201, 176, 0.45);
+        }
+        .cal-cell.today .num {
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        .cal-cell.selected {
+            background-color: #007BFF;
+            border-color: #4da3ff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+        }
+        .cal-cell.selected .num,
+        .cal-cell.selected .lunar,
+        .cal-cell.selected .lunar.term {
+            color: #ffffff;
+        }
+        .cal-info {
+            margin-top: 10px;
+            padding: 8px 10px;
+            background-color: #333;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #b0b0b0;
+        }
+        .cal-info b {
+            color: #9cdcfe;
+        }
+        @media (max-width: 520px) {
+            .cal-cell {
+                min-height: 46px;
+            }
+            .cal-cell .num {
+                font-size: 13px;
+            }
+            .cal-cell .lunar {
+                font-size: 9px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chinese-lunar-calendar@1.0.1/dist/chinese_lunar_calendar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/croner@9/dist/croner.umd.min.js"></script>
+</head>
+<body>
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(1)">时间转换</button>
+        <button class="tab-btn" onclick="switchTab(2)">时间计算</button>
+        <button class="tab-btn" onclick="switchTab(3)">Cron</button>
+        <button class="tab-btn" onclick="switchTab(4)">URL</button>
+        <button class="tab-btn" onclick="switchTab(5)">cURL</button>
+        <button class="tab-btn" onclick="switchTab(6)">文本计算器</button>
+    </div>
+
+    <!-- 功能2+3：时间转换（时间戳互转 + 农历） -->
+    <div class="tab-content active" data-tab="1">
+    <div class="section">
+        <h2>日期跳转</h2>
+        <p class="cal-hint">输入任意日期后打开该日期所在月份的日历（农历范围：1901/1/1~2100/12/31）</p>
+        <div class="cal-head">
+            <label class="cal-label">日期:</label>
+            <input type="date" id="calendarJumpDate" onchange="calendarJump()" onkeydown="if (event.key === 'Enter') { event.preventDefault(); calendarJump(); }">
+            <button onclick="calendarJump()">跳转</button>
+            <button class="cal-nav" onclick="calendarJumpToToday()">回到今天</button>
+        </div>
+        <div class="cal-toolbar">
+            <button class="cal-nav" onclick="calendarShiftMonth(-12)">&lsaquo; 去年今日</button>
+            <button class="cal-nav" onclick="calendarShiftMonth(-1)">&lsaquo; 上月</button>
+            <div class="cal-title" id="calendarTitle"></div>
+            <button class="cal-nav" onclick="calendarShiftMonth(1)">下月 &rsaquo;</button>
+            <button class="cal-nav" onclick="calendarShiftMonth(12)">明年今日 &rsaquo;</button>
+        </div>
+        <div class="cal-weekdays">
+            <div class="we">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="we">六</div>
+        </div>
+        <div class="cal-grid" id="calendarGrid"></div>
+        <div class="cal-info" id="calendarInfo"></div>
+    </div>
+    <div class="section">
+        <h2>时间戳互转</h2>
+        <label>日期:</label>
+        <input type="datetime-local" step="1" id="toTimestampDate">
+        <input type="text" id="toTimestampDateText" placeholder="YYYY-MM-DD HH:mm:ss.SSS"><br>
+        <button onclick="toTimestamp()">转换时间戳</button>
+        <div id="timestampResult" class="result"></div>
+        <br/>
+        <label>时间戳:</label>
+        <input type="number" id="fromTimestamp" placeholder="输入毫秒或秒"><br>
+        <label>单位:</label>
+        <select id="timestampUnit">
+            <option value="ms">毫秒</option>
+            <option value="s">秒</option>
+        </select><br>
+        <button onclick="fromTimestamp()">转换日期</button>
+        <div id="fromTimestampResult" class="result"></div>
+    </div>
+    <div class="section">
+        <h2>日期转农历</h2>
+        <label>日期:</label>
+        <input type="date" id="toLunarDate">
+        <input type="text" id="toLunarDateText" placeholder="YYYY-MM-DD"><br>
+        <button onclick="toLunar()">转换农历</button>
+        <div id="lunarResult" class="result"></div>
+    </div>
+</div>
+
+    <!-- 功能1+2：日期计算（间隔 + 加减） -->
+    <div class="tab-content" data-tab="2">
+    <div class="section">
+        <h2>计算日期时间间隔</h2>
+        <label>开始日期时间:</label>
+        <input type="datetime-local" step="1" id="startDateTime">
+        <input type="text" id="startDateTimeText" placeholder="YYYY-MM-DD HH:mm:ss.SSS"><br>
+        <label>结束日期时间:</label>
+        <input type="datetime-local" step="1" id="endDateTime">
+        <input type="text" id="endDateTimeText" placeholder="YYYY-MM-DD HH:mm:ss.SSS"><br>
+        <button onclick="calcDateDiff()">计算间隔</button>
+        <div id="diffResult" class="result" style="display: none;"></div><br>
+        <label>年:</label><input type="number" id="diffYears" value="0"><br>
+        <label>月:</label><input type="number" id="diffMonths" value="0"><br>
+        <label>天:</label><input type="number" id="diffDays" value="0"><br>
+        <label>时:</label><input type="number" id="diffHours" value="0"><br>
+        <label>分:</label><input type="number" id="diffMinutes" value="0"><br>
+        <label>秒:</label><input type="number" id="diffSeconds" value="0"><br>
+        <label>毫秒:</label><input type="number" id="diffMilliseconds" value="0">
+    </div>
+    <div class="section">
+        <h2>日期时间加减运算</h2>
+        <label>日期时间:</label>
+        <input type="datetime-local" step="1" id="baseDateTime">
+        <input type="text" id="baseDateTimeText" placeholder="YYYY-MM-DD HH:mm:ss.SSS"><br>
+        <label>年:</label><input type="number" id="addYears" value="0"><br>
+        <label>月:</label><input type="number" id="addMonths" value="0"><br>
+        <label>天:</label><input type="number" id="addDays" value="0"><br>
+        <label>时:</label><input type="number" id="addHours" value="0"><br>
+        <label>分:</label><input type="number" id="addMinutes" value="0"><br>
+        <label>秒:</label><input type="number" id="addSeconds" value="0"><br>
+        <label>毫秒:</label><input type="number" id="addMilliseconds" value="0"><br>
+        <button onclick="calcDateAdd()">计算结果</button>
+        <div id="addResult" class="result"></div>
+    </div>
+</div>
+
+    <!-- 功能3+4：Cron 表达式（Spring Boot + Linux） -->
+    <div class="tab-content" data-tab="3">
+    <div class="section">
+        <h2>Spring Boot Cron 表达式</h2>
+        <label>格式: <code>秒 分 时 日 月 周</code></label>
+        <input type="text" id="cronExpression" value="0 0 0 * * ?" style="width:280px;font-family:monospace;"><br>
+        <p style="color:#888;font-size:13px;margin:4px 0 8px 0;">
+            示例: <code>0 */5 * * * ?</code> 每5分钟
+        </p>
+        <button onclick="calcCron()">接下来10次执行</button>
+        <div id="cronResult" class="result"></div>
+    </div>
+    <div class="section">
+        <h2>Linux Cron 表达式</h2>
+        <label>格式: <code>分 时 日 月 周</code></label>
+        <input type="text" id="cronLinuxExpression" value="*/5 * * * *" style="width:280px;font-family:monospace;"><br>
+        <p style="color:#888;font-size:13px;margin:4px 0 8px 0;">
+            示例: <code>*/5 * * * *</code> 每5分钟 &nbsp; <code>0 2 * * *</code> 每天凌晨2点
+        </p>
+        <button onclick="calcCronLinux()">接下来10次执行</button>
+        <div id="cronLinuxResult" class="result"></div>
+    </div>
+</div>
+
+    <!-- 功能4：URL 工具（编码/解码 + 路径参数提取） -->
+    <div class="tab-content" data-tab="4">
+    <div class="section">
+        <h2>URL 编码 / 解码</h2>
+        <label>输入内容:</label><br>
+        <textarea id="urlInput" rows="3" style="width:100%;box-sizing:border-box;resize:vertical;" placeholder="输入要编码或解码的 URL 文本"></textarea><br>
+        <button onclick="urlEncode()">URL 编码</button>
+        <button onclick="urlEncodeComponent()">参数值编码</button>
+        <button onclick="urlDecode()">解码 Decode</button>
+        <div id="urlCodeResult" class="result"></div>
+    </div>
+    <div class="section">
+        <h2>URL 查询参数提取</h2>
+        <label>URL 地址:</label>
+        <input type="text" id="urlActual" value="https://example.com/api/users?name=张三&age=25&page=1" style="width:400px;font-family:monospace;" placeholder="https://example.com/page?key=value"><br>
+        <button onclick="urlExtractParams()">提取参数</button>
+        <div id="urlParamsResult" class="result"></div>
+    </div>
+</div>
+
+    <!-- 功能5：cURL 构造（参考 xtechtools.com/curl-gen 的交互） -->
+    <div class="tab-content" data-tab="5">
+        <div class="card">
+            <div class="row-item">
+                <select id="curlMethod" onchange="curlBuild()">
+                    <option>GET</option>
+                    <option selected>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                    <option>HEAD</option>
+                    <option>OPTIONS</option>
+                </select>
+                <input type="text" id="curlUrl" value="http://localhost:8080/api/demo" placeholder="http://localhost:8080/api/demo" oninput="curlBuild()">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h3 class="card-title">查询参数</h3>
+                <div>
+                    <button class="link-btn" onclick="curlParseUrlParams()">从 URL 解析</button>
+                    <button class="link-btn" onclick="curlAddParam()">+ 添加</button>
+                </div>
+            </div>
+            <div id="curlParamList"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h3 class="card-title">Headers</h3>
+                <div>
+                    <button class="link-btn" onclick="curlAddCommonHeaders()">+ 常用</button>
+                    <button class="link-btn" onclick="curlAddHeader()">+ 添加</button>
+                </div>
+            </div>
+            <div id="curlHeaderList"></div>
+            <datalist id="curlHeaderKeyList"></datalist>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h3 class="card-title">Body</h3>
+                <select id="curlBodyType" onchange="curlOnBodyTypeChange()">
+                    <option value="none">None</option>
+                    <option value="json" selected>JSON</option>
+                    <option value="form">x-www-form-urlencoded</option>
+                    <option value="multipart">form-data</option>
+                    <option value="xml">XML</option>
+                    <option value="text">Raw Text</option>
+                </select>
+            </div>
+
+            <div id="curlBodyJsonBox">
+                <textarea id="curlBodyJson" rows="8" spellcheck="false" oninput="curlBuild()"
+                          placeholder='{"modelInfoV5Dto": {"planInputListMap": {}}}'
+                          style="width:100%;box-sizing:border-box;resize:vertical;font-family:Consolas,monospace;">{
+  "key": "value"
+}</textarea>
+                <div>
+                    <button class="link-btn" onclick="curlFormatJson(2)">格式化</button>
+                    <button class="link-btn" onclick="curlFormatJson(0)">压缩</button>
+                    <button class="link-btn" onclick="curlClearBody()">清空</button>
+                    <span style="color:#888;font-size:12px;">未填写 Content-Type 时按 Body 类型自动补全</span>
+                </div>
+            </div>
+
+            <div id="curlBodyFormBox" style="display:none;">
+                <div id="curlBodyFormList"></div>
+                <button class="link-btn" onclick="curlAddBodyRow('form')">+ 添加字段</button>
+            </div>
+
+            <div id="curlBodyMultipartBox" style="display:none;">
+                <div id="curlBodyMultipartList"></div>
+                <button class="link-btn" onclick="curlAddBodyRow('multipart')">+ 添加字段</button>
+            </div>
+
+            <div id="curlBodyRawBox" style="display:none;">
+                <textarea id="curlBodyRaw" rows="6" spellcheck="false" oninput="curlBuild()"
+                          placeholder="<root><name>value</name></root>"
+                          style="width:100%;box-sizing:border-box;resize:vertical;font-family:Consolas,monospace;"></textarea>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h3 class="card-title">选项</h3>
+            </div>
+            <div class="opt-line">
+                <label class="chk"><input type="checkbox" id="curlOptK" checked onchange="curlBuild()"> -k 忽略证书校验</label>
+                <label class="chk"><input type="checkbox" id="curlOptL" onchange="curlBuild()"> -L 跟随重定向</label>
+                <label class="chk"><input type="checkbox" id="curlOptS" onchange="curlBuild()"> -s 静默</label>
+                <label class="chk"><input type="checkbox" id="curlOptI" onchange="curlBuild()"> -i 显示响应头</label>
+                <label class="chk"><input type="checkbox" id="curlOptCompressed" onchange="curlBuild()"> --compressed</label>
+            </div>
+            <div class="opt-line">
+                <span class="lbl">超时(秒):</span>
+                <input type="number" id="curlOptTimeout" min="0" placeholder="30" oninput="curlBuild()">
+                <span class="lbl">代理:</span>
+                <input type="text" id="curlOptProxy" placeholder="http://127.0.0.1:7890" oninput="curlBuild()">
+                <span class="lbl">认证 -u:</span>
+                <input type="text" id="curlOptUser" placeholder="user:password" oninput="curlBuild()">
+            </div>
+        </div>
+
+        <div class="curl-out">
+            <div class="card-head">
+                <h3 class="card-title">cURL 命令</h3>
+                <div>
+                    <select id="curlStyle" onchange="curlBuild()">
+                        <option value="bash-multi">Bash 多行</option>
+                        <option value="bash-single">Bash 单行</option>
+                        <option value="cmd">Windows CMD</option>
+                        <option value="ps">PowerShell</option>
+                    </select>
+                    <button class="link-btn" id="curlCopyBtn" onclick="curlCopy()">复制</button>
+                </div>
+            </div>
+            <pre id="curlOutput"></pre>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h3 class="card-title">解析 cURL</h3>
+                <button class="link-btn" onclick="curlParseToForm()">解析到表单</button>
+            </div>
+            <textarea id="curlParseInput" rows="4" spellcheck="false"
+                      placeholder="粘贴一条 cURL 命令，点“解析到表单”自动回填上面的内容"
+                      style="width:100%;box-sizing:border-box;resize:vertical;font-family:Consolas,monospace;"></textarea>
+        </div>
+    </div>
+
+    <!-- 功能6：文本计算器 -->
+    <div class="tab-content" data-tab="6">
+        <div class="section">
+            <h2>文本计算器</h2>
+            <p class="calc-hint">输入数字、+ - * / 和括号，点击“计算”得到结果；支持多行输入，以及 ＋ － × ÷ （ ） 和全角数字。快捷键：Ctrl + Enter。</p>
+            <textarea id="calcInput" class="calc-input" spellcheck="false" autocomplete="off"
+                      onkeydown="calcShortcut(event)"
+                      placeholder="例如：(12 + 3.5) * 4 / 2 - 8 / (1 + 1)"></textarea>
+            <div class="calc-actions">
+                <button onclick="calcRun()">计算</button>
+                <button class="btn-ghost" onclick="calcClear()">清空</button>
+                <span id="calcStatus" class="calc-status"></span>
+            </div>
+            <div class="calc-result-box">
+                <span class="calc-result-label">结果</span>
+                <div id="calcResult" class="calc-result">—</div>
+            </div>
+            <div class="calc-history">
+                <div class="calc-history-head">
+                    <h3 class="calc-history-title">计算记录</h3>
+                    <span id="calcHistoryInfo" class="calc-history-info">0/20 条 · 锁定 0/10</span>
+                </div>
+                <div id="calcHistoryList" class="calc-history-list"></div>
+                <p id="calcHistoryEmpty" class="calc-history-empty">还没有记录，计算一次就会自动保存在这里（最多 20 条，锁定的不会被自动删除）。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签切换
+        function switchTab(index) {
+            // 更新标签按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-btn')[index - 1].classList.add('active');
+            // 更新标签内容
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.querySelector(`.tab-content[data-tab="${index}"]`).classList.add('active');
+        }
+
+        // 解析日期时间（支持控件和文本输入）
+        function parseDateTime(datetimeLocal, datetimeText) {
+            if (datetimeLocal && datetimeLocal !== "") {
+                return moment(datetimeLocal);
+            }
+            if (datetimeText && datetimeText !== "") {
+                return moment(datetimeText, "YYYY-MM-DD HH:mm:ss.SSS");
+            }
+            return null;
+        }
+
+        // 格式化日期时间为字符串
+        function formatDateTime(momentObj) {
+            if (!momentObj || !momentObj.isValid()) return "无效日期";
+            return momentObj.format("YYYY-MM-DD HH:mm:ss.SSS");
+        }
+
+        // 功能1：计算两个日期时间间隔
+        function calcDateDiff() {
+            const start = parseDateTime(
+                document.getElementById("startDateTime").value,
+                document.getElementById("startDateTimeText").value
+            );
+            const end = parseDateTime(
+                document.getElementById("endDateTime").value,
+                document.getElementById("endDateTimeText").value
+            );
+            const resultDiv = document.getElementById("diffResult");
+
+            if (!start || !end || !start.isValid() || !end.isValid()) {
+                resultDiv.innerHTML = "请输入有效的开始和结束日期时间";
+                resultDiv.style.display = "block";
+                return;
+            }
+
+            const duration = moment.duration(Math.abs(end - start));
+            const years = Math.floor(duration.asYears());
+            const months = Math.floor(duration.asMonths());
+            const days = Math.floor(duration.asDays());
+            const hours = Math.floor(duration.asHours());
+            const minutes = Math.floor(duration.asMinutes());
+            const seconds = Math.floor(duration.asSeconds());
+            const milliseconds = Math.floor(duration.asMilliseconds());
+
+            // resultDiv.innerHTML = `间隔: ${years}年 ${months}月 ${days}天 ${hours}时 ${minutes}分 ${seconds}秒 ${milliseconds}毫秒`;
+
+            resultDiv.style.display = "none";
+            document.getElementById("diffYears").value = years;
+            document.getElementById("diffMonths").value = months;
+            document.getElementById("diffDays").value = days;
+            document.getElementById("diffHours").value = hours;
+            document.getElementById("diffMinutes").value = minutes;
+            document.getElementById("diffSeconds").value = seconds;
+            document.getElementById("diffMilliseconds").value = milliseconds;
+        }
+
+        // 功能2：日期时间加减运算
+        function calcDateAdd() {
+            const baseDate = parseDateTime(
+                document.getElementById("baseDateTime").value,
+                document.getElementById("baseDateTimeText").value
+            );
+            const resultDiv = document.getElementById("addResult");
+
+            if (!baseDate || !baseDate.isValid()) {
+                resultDiv.innerHTML = "请输入有效的日期时间";
+                return;
+            }
+
+            const years = parseInt(document.getElementById("addYears").value) || 0;
+            const months = parseInt(document.getElementById("addMonths").value) || 0;
+            const days = parseInt(document.getElementById("addDays").value) || 0;
+            const hours = parseInt(document.getElementById("addHours").value) || 0;
+            const minutes = parseInt(document.getElementById("addMinutes").value) || 0;
+            const seconds = parseInt(document.getElementById("addSeconds").value) || 0;
+            const milliseconds = parseInt(document.getElementById("addMilliseconds").value) || 0;
+
+            const result = moment(baseDate)
+                .add(years, 'years')
+                .add(months, 'months')
+                .add(days, 'days')
+                .add(hours, 'hours')
+                .add(minutes, 'minutes')
+                .add(seconds, 'seconds')
+                .add(milliseconds, 'milliseconds');
+
+            resultDiv.innerHTML = `结果日期: ${formatDateTime(result)}`;
+        }
+
+        // 功能3：日期时间转时间戳
+        function toTimestamp() {
+            let date = parseDateTime(
+                document.getElementById("toTimestampDate").value,
+                document.getElementById("toTimestampDateText").value
+            );
+            const resultDiv = document.getElementById("timestampResult");
+
+            if (!date || !date.isValid()) {
+                date = moment(); // 默认当前时间
+            }
+
+            const ms = date.valueOf();
+            const s = Math.floor(ms / 1000);
+            resultDiv.innerHTML = `毫秒时间戳: ${ms}<br>秒时间戳: ${s}`;
+        }
+
+        // 功能4：时间戳转日期时间
+        function fromTimestamp() {
+            const timestamp = parseInt(document.getElementById("fromTimestamp").value);
+            const unit = document.getElementById("timestampUnit").value;
+            const resultDiv = document.getElementById("fromTimestampResult");
+
+            if (isNaN(timestamp)) {
+                resultDiv.innerHTML = "请输入有效的时间戳";
+                return;
+            }
+
+            const ms = unit === "s" ? timestamp * 1000 : timestamp;
+            const date = moment(ms);
+            resultDiv.innerHTML = `日期时间: ${formatDateTime(date)}`;
+        }
+
+        // 功能6：Spring Boot Cron 表达式 - 计算接下来10次执行
+        function calcCron() {
+            const expr = document.getElementById("cronExpression").value.trim();
+            const resultDiv = document.getElementById("cronResult");
+
+            if (!expr) {
+                resultDiv.innerHTML = "请输入 Cron 表达式";
+                return;
+            }
+
+            try {
+                const job = new Cron(expr, { legacyMode: false });
+                const runs = job.nextRuns(10);
+
+                if (runs.length === 0) {
+                    resultDiv.innerHTML = "未找到未来的执行时间";
+                    return;
+                }
+
+                let html = `<div style="font-weight:bold;margin-bottom:8px;">共找到 ${runs.length} 次执行：</div>`;
+                html += `<div style="font-family:monospace;line-height:1.8;">`;
+                runs.forEach((date, i) => {
+                    const y = date.getFullYear();
+                    const mo = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    const h = String(date.getHours()).padStart(2, '0');
+                    const mi = String(date.getMinutes()).padStart(2, '0');
+                    const s = String(date.getSeconds()).padStart(2, '0');
+                    html += `<div>${i + 1}. ${y}-${mo}-${d} ${h}:${mi}:${s}</div>`;
+                });
+                html += `</div>`;
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = "Cron 表达式无效: " + e.message;
+            }
+        }
+
+        // 功能7：Linux Cron 表达式 - 计算接下来10次执行（5字段，自动补0秒）
+        function calcCronLinux() {
+            const expr = document.getElementById("cronLinuxExpression").value.trim();
+            const resultDiv = document.getElementById("cronLinuxResult");
+
+            if (!expr) {
+                resultDiv.innerHTML = "请输入 Linux Cron 表达式";
+                return;
+            }
+
+            try {
+                // croner 自动识别5字段，补秒为0
+                const job = new Cron(expr, { legacyMode: false });
+                const runs = job.nextRuns(10);
+
+                if (runs.length === 0) {
+                    resultDiv.innerHTML = "未找到未来的执行时间";
+                    return;
+                }
+
+                let html = `<div style="font-weight:bold;margin-bottom:8px;">共找到 ${runs.length} 次执行：</div>`;
+                html += `<div style="font-family:monospace;line-height:1.8;">`;
+                runs.forEach((date, i) => {
+                    const y = date.getFullYear();
+                    const mo = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    const h = String(date.getHours()).padStart(2, '0');
+                    const mi = String(date.getMinutes()).padStart(2, '0');
+                    const s = String(date.getSeconds()).padStart(2, '0');
+                    html += `<div>${i + 1}. ${y}-${mo}-${d} ${h}:${mi}:${s}</div>`;
+                });
+                html += `</div>`;
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = "Cron 表达式无效: " + e.message;
+            }
+        }
+
+        // 功能5：日期转农历
+        function toLunar() {
+            const dateInput = document.getElementById("toLunarDate").value || document.getElementById("toLunarDateText").value;
+            const resultDiv = document.getElementById("lunarResult");
+
+            if (!dateInput) {
+                resultDiv.innerHTML = "请输入有效的日期";
+                return;
+            }
+
+            const date = moment(dateInput, "YYYY-MM-DD");
+            if (!date.isValid()) {
+                resultDiv.innerHTML = "请输入有效的日期";
+                return;
+            }
+
+            // 本地农历库内置数据表只覆盖 1901-2100 年
+            if (date.year() < 1901 || date.year() > 2100) {
+                resultDiv.innerHTML = "农历数据仅支持 1901-01-01 至 2100-12-31，该日期超出范围";
+                return;
+            }
+
+            try {
+                const lunar = window.chinese_lunar_calendar.getLunar(date.year(), date.month() + 1, date.date());
+                const lunarText = lunarMonthName(lunar.lunarMonth, lunar.isLeap) + lunarDayName(lunar.lunarDate);
+                resultDiv.innerHTML = `农历: ${lunarText}（${String(lunar.lunarYear || "").replace("年", "")}${lunar.zodiac || ""}年）`;
+            } catch (e) {
+                resultDiv.innerHTML = "农历转换失败，请检查输入日期";
+            }
+        }
+        // 功能5：日期跳转 · 月历
+        const calendarState = { year: 0, month: 0, selected: null };
+
+        // 宽松解析手输日期：2026-11-03 / 2026/11/3 / 2026.11.3 / 20261103 / 2026年11月3日
+        function calendarParseDate(raw) {
+            const text = String(raw == null ? "" : raw).trim();
+            if (!text) return null;
+            const formats = ["YYYY-MM-DD", "YYYY-M-D", "YYYY/M/D", "YYYY.M.D", "YYYYMMDD", "YYYY年M月D日"];
+            for (let i = 0; i < formats.length; i++) {
+                const d = moment(text, formats[i], true);
+                if (d.isValid()) return d;
+            }
+            return null;
+        }
+
+        // 农历月名：正月、二月……冬月、腊月
+        function lunarMonthName(month, isLeap) {
+            const names = ["正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "冬", "腊"];
+            return (isLeap ? "闰" : "") + (names[month - 1] || (month + "")) + "月";
+        }
+
+        // 农历日名：初一……初十、十一……二十、廿一……三十
+        // （日期库自带的 dateStr 会把二十、三十拼成“廿十”，这里自行拼接）
+        function lunarDayName(day) {
+            const cn = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+            if (day === 10) return "初十";
+            if (day < 10) return "初" + cn[day - 1];
+            if (day < 20) return "十" + cn[day - 11];
+            if (day === 20) return "二十";
+            if (day < 30) return "廿" + cn[day - 21];
+            return "三十";
+        }
+
+        // 单元格农历文字：有节气时优先显示节气，农历初一显示月份
+        function calendarLunarInfo(date) {
+            const empty = { text: "", detail: "", raw: null, term: "" };
+            if (!window.chinese_lunar_calendar || typeof window.chinese_lunar_calendar.getLunar !== "function") {
+                return empty;
+            }
+            // 本地农历库只覆盖 1901-2100 年，范围外不显示农历
+            if (date.year() < 1901 || date.year() > 2100) {
+                return empty;
+            }
+            try {
+                const lunar = window.chinese_lunar_calendar.getLunar(date.year(), date.month() + 1, date.date());
+                if (!lunar) return empty;
+                const term = lunar.solarTerm || "";
+                const monthText = lunarMonthName(lunar.lunarMonth, lunar.isLeap);
+                const dayText = lunarDayName(lunar.lunarDate);
+                const detail = monthText + dayText;
+                const cellText = term ? term : (lunar.lunarDate === 1 ? monthText : dayText);
+                return { text: cellText, detail: detail, raw: lunar, term: term };
+            } catch (e) {
+                return empty;
+            }
+        }
+
+        function calendarInit() {
+            const today = moment();
+            const input = document.getElementById("calendarJumpDate");
+            if (input) input.value = today.format("YYYY-MM-DD");
+            calendarShow(today.year(), today.month() + 1, today.date());
+        }
+
+        // 输入日期后跳到该日期所在月份
+        function calendarJump() {
+            const input = document.getElementById("calendarJumpDate");
+            const date = calendarParseDate(input.value) || moment();
+            input.value = date.format("YYYY-MM-DD");
+            calendarShow(date.year(), date.month() + 1, date.date());
+        }
+
+        function calendarJumpToToday() {
+            const today = moment();
+            document.getElementById("calendarJumpDate").value = today.format("YYYY-MM-DD");
+            calendarShow(today.year(), today.month() + 1, today.date());
+        }
+
+        function calendarShiftMonth(delta) {
+            const base = moment([calendarState.year, calendarState.month - 1, 1]).add(delta, "months");
+            let day = null;
+            if (calendarState.selected) {
+                day = Math.min(calendarState.selected.date(), base.daysInMonth());
+            }
+            calendarShow(base.year(), base.month() + 1, day);
+        }
+
+        function calendarPickDate(dateStr) {
+            const d = moment(dateStr, "YYYY-MM-DD", true);
+            if (!d.isValid()) return;
+            document.getElementById("calendarJumpDate").value = d.format("YYYY-MM-DD");
+            calendarShow(d.year(), d.month() + 1, d.date());
+        }
+
+        function calendarShow(year, month, day) {
+            calendarState.year = year;
+            calendarState.month = month;
+            calendarState.selected = day ? moment([year, month - 1, day]) : null;
+            calendarRender();
+            calendarUpdateInfo();
+        }
+
+        function calendarRender() {
+            const grid = document.getElementById("calendarGrid");
+            const title = document.getElementById("calendarTitle");
+            if (!grid || !title) return;
+
+            const year = calendarState.year;
+            const month = calendarState.month;
+            title.textContent = year + "年" + month + "月";
+
+            const first = moment([year, month - 1, 1]);
+            const daysInMonth = first.daysInMonth();
+            // 周日作为一周第一天（moment 中周日为 0）
+            const lead = first.day();
+            const start = first.clone().subtract(lead, "days");
+            const total = Math.ceil((lead + daysInMonth) / 7) * 7;
+
+            const weekNames = ["日", "一", "二", "三", "四", "五", "六"];
+            const todayStr = moment().format("YYYY-MM-DD");
+            const selectedStr = calendarState.selected ? calendarState.selected.format("YYYY-MM-DD") : "";
+            let html = "";
+
+            for (let i = 0; i < total; i++) {
+                const d = start.clone().add(i, "days");
+                const dateStr = d.format("YYYY-MM-DD");
+                const dow = d.day();
+                const cls = ["cal-cell"];
+                if (d.year() !== year || d.month() + 1 !== month) cls.push("other");
+                if (dow === 0 || dow === 6) cls.push("weekend");
+                if (dateStr === todayStr) cls.push("today");
+                if (dateStr === selectedStr) cls.push("selected");
+
+                const lunar = calendarLunarInfo(d);
+                const tip = dateStr + " 星期" + weekNames[dow] + (lunar.text ? " · " + lunar.text : "");
+                html += '<div class="' + cls.join(" ") + '" data-date="' + dateStr + '" title="' + escapeHtml(tip) +
+                    '" onclick="calendarPickDate(\'' + dateStr + '\')">' +
+                    '<span class="num">' + d.date() + "</span>" +
+                    '<span class="lunar' + (lunar.term ? " term" : "") + '">' + escapeHtml(lunar.text) + "</span>" +
+                    "</div>";
+            }
+            grid.innerHTML = html;
+        }
+
+        function calendarUpdateInfo() {
+            const box = document.getElementById("calendarInfo");
+            if (!box) return;
+
+            const sel = calendarState.selected;
+            if (!sel) {
+                box.innerHTML = "当前显示 <b>" + calendarState.year + "年" + calendarState.month + "月</b>，点击日历中的日期可查看详情。";
+                return;
+            }
+
+            const weekNames = ["日", "一", "二", "三", "四", "五", "六"];
+            const diff = sel.clone().startOf("day").diff(moment().startOf("day"), "days");
+            let diffText = "就是今天";
+            if (diff > 0) diffText = "距今还有 " + diff + " 天";
+            else if (diff < 0) diffText = "距今已过 " + (-diff) + " 天";
+
+            let lunarText = "";
+            const lunar = calendarLunarInfo(sel);
+            if (lunar.raw) {
+                lunarText = "农历 " + lunar.detail;
+                if (lunar.term) lunarText += " · 节气 " + lunar.term;
+                // lunarYear 自带“年”字（如“丙午年”），与生肖拼成“丙午马年”
+                const ganzhi = String(lunar.raw.lunarYear || "").replace("年", "") + String(lunar.raw.zodiac || "");
+                if (ganzhi) lunarText += "（" + ganzhi + "年）";
+            }
+
+            const outOfRange = sel.year() < 1901 || sel.year() > 2100;
+            let html = "<div><b>" + sel.format("YYYY-MM-DD") + "</b> 星期" + weekNames[sel.day()] +
+                " · 第 " + sel.isoWeek() + " 周 · " + diffText + "</div>";
+            if (lunarText) html += "<div>" + escapeHtml(lunarText) + "</div>";
+            if (outOfRange) html += '<div style="color:#d98a8a;">农历数据仅支持 1901-01-01 至 2100-12-31，该日期不显示农历</div>';
+            html += '<div style="color:#8a8a8a;">当年第 ' + sel.dayOfYear() + " 天 · 本月第 " + sel.date() +
+                " 天 · 本月还剩 " + (sel.daysInMonth() - sel.date()) + " 天</div>";
+            box.innerHTML = html;
+        }
+
+        // 功能5：URL 工具
+        function urlEncode() {
+            const input = document.getElementById("urlInput").value;
+            const resultDiv = document.getElementById("urlCodeResult");
+            if (!input) { resultDiv.innerHTML = "请输入要编码的内容"; return; }
+            resultDiv.innerHTML = `<div style="word-break:break-all;">${escapeHtml(encodeURI(input))}</div>`;
+        }
+        function urlEncodeComponent() {
+            const input = document.getElementById("urlInput").value;
+            const resultDiv = document.getElementById("urlCodeResult");
+            if (!input) { resultDiv.innerHTML = "请输入要编码的内容"; return; }
+            resultDiv.innerHTML = `<div style="word-break:break-all;">${escapeHtml(encodeURIComponent(input))}</div>`;
+        }
+        function urlDecode() {
+            const input = document.getElementById("urlInput").value;
+            const resultDiv = document.getElementById("urlCodeResult");
+            if (!input) { resultDiv.innerHTML = "请输入要解码的内容"; return; }
+            try {
+                resultDiv.innerHTML = `<div style="word-break:break-all;">${escapeHtml(decodeURIComponent(input))}</div>`;
+            } catch (e) {
+                resultDiv.innerHTML = "解码失败: 输入不是有效的 URL 编码";
+            }
+        }
+        function urlExtractParams() {
+            const raw = document.getElementById("urlActual").value.trim();
+            const resultDiv = document.getElementById("urlParamsResult");
+            if (!raw) { resultDiv.innerHTML = "请输入 URL 地址"; return; }
+
+            // 尝试解析 URL
+            let url;
+            try {
+                url = new URL(raw.startsWith("http") || raw.startsWith("//") ? raw : "https://" + raw);
+            } catch (e) {
+                resultDiv.innerHTML = "URL 格式无效";
+                return;
+            }
+
+            const params = new URLSearchParams(url.search);
+            const entries = [...params.entries()];
+
+            if (entries.length === 0) {
+                resultDiv.innerHTML = "未找到查询参数";
+                return;
+            }
+
+            let html = `<div style="margin-bottom:6px;color:#888;">共 ${entries.length} 个参数</div>`;
+            html += `<table style="width:100%;border-collapse:collapse;">
+                <tr style="border-bottom:1px solid #555;">
+                    <th style="padding:6px 8px;text-align:left;color:#007BFF;">参数名</th>
+                    <th style="padding:6px 8px;text-align:left;color:#007BFF;">值</th>
+                </tr>`;
+            entries.forEach(([name, value]) => {
+                html += `<tr style="border-bottom:1px solid #3a3a3a;">
+                    <td style="padding:6px 8px;font-family:monospace;">${escapeHtml(name)}</td>
+                    <td style="padding:6px 8px;font-family:monospace;color:#4ec9b0;">${escapeHtml(value)}</td>
+                </tr>`;
+            });
+            html += `</table>`;
+            resultDiv.innerHTML = html;
+        }
+        function escapeHtml(str) {
+            const div = document.createElement("div");
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+        /* ==================== 功能6：cURL 构造 ==================== */
+        const CURL_HEADER_KEYS = [
+            "Content-Type", "Accept", "Accept-Language", "Accept-Encoding", "Authorization", "Cookie",
+            "Origin", "Referer", "User-Agent", "X-Requested-With", "X-Auth-Token", "X-Token",
+            "Cache-Control", "Connection", "Host", "If-None-Match"
+        ];
+        const CURL_BODY_TYPES = {
+            none: { box: null, contentType: null },
+            json: { box: "curlBodyJsonBox", contentType: "application/json" },
+            form: { box: "curlBodyFormBox", contentType: "application/x-www-form-urlencoded" },
+            multipart: { box: "curlBodyMultipartBox", contentType: null },
+            xml: { box: "curlBodyRawBox", contentType: "application/xml" },
+            text: { box: "curlBodyRawBox", contentType: "text/plain" }
+        };
+
+        function curlInit() {
+            const dl = document.getElementById("curlHeaderKeyList");
+            dl.innerHTML = CURL_HEADER_KEYS.map(k => '<option value="' + k + '"></option>').join("");
+            curlAddHeader("Content-Type", "application/json");
+            curlAddHeader("Authorization", "Bearer YOUR_TOKEN");
+            curlAddParam("", "");
+            curlOnBodyTypeChange();
+            const tab = document.querySelector('.tab-content[data-tab="5"]');
+            tab.addEventListener("input", curlBuild);
+            tab.addEventListener("change", curlBuild);
+            curlBuild();
+        }
+
+        // ---------- 行编辑 ----------
+        function curlMakeRow(listId, key, value, opts) {
+            opts = opts || {};
+            const list = document.getElementById(listId);
+            const row = document.createElement("div");
+            row.className = "row-item";
+
+            const k = document.createElement("input");
+            k.type = "text";
+            k.className = "k";
+            k.placeholder = opts.keyPlaceholder || "名称";
+            k.value = key == null ? "" : key;
+            if (opts.header) { k.setAttribute("list", "curlHeaderKeyList"); }
+            row.appendChild(k);
+
+            const v = document.createElement("input");
+            v.type = "text";
+            v.className = "v";
+            v.placeholder = opts.valuePlaceholder || "值";
+            v.value = value == null ? "" : value;
+            row.appendChild(v);
+
+            if (opts.fileCapable) {
+                const flag = document.createElement("label");
+                flag.className = "fileflag";
+                flag.title = "勾选后按文件上传生成 -F '名称=@文件路径'";
+                const cb = document.createElement("input");
+                cb.type = "checkbox";
+                cb.className = "fileflag-cb";
+                cb.checked = !!opts.isFile;
+                flag.appendChild(cb);
+                flag.appendChild(document.createTextNode("文件@"));
+                row.appendChild(flag);
+            }
+
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "del";
+            del.textContent = "\u2715";
+            del.title = "删除该行";
+            del.onclick = function () { row.remove(); curlBuild(); };
+            row.appendChild(del);
+
+            list.appendChild(row);
+            return row;
+        }
+
+        function curlAddHeader(k, v) {
+            return curlMakeRow("curlHeaderList", k || "", v || "", {
+                header: true,
+                keyPlaceholder: "Header 名称",
+                valuePlaceholder: "值"
+            });
+        }
+
+        function curlAddParam(k, v) {
+            return curlMakeRow("curlParamList", k || "", v || "", {
+                keyPlaceholder: "参数名",
+                valuePlaceholder: "参数值"
+            });
+        }
+
+        function curlAddBodyRow(type, k, v, isFile) {
+            const id = type === "multipart" ? "curlBodyMultipartList" : "curlBodyFormList";
+            return curlMakeRow(id, k || "", v || "", {
+                fileCapable: type === "multipart",
+                isFile: !!isFile,
+                keyPlaceholder: "字段名",
+                valuePlaceholder: type === "multipart" ? "值 / 文件路径" : "值"
+            });
+        }
+
+        function curlAddCommonHeaders() {
+            const exists = curlReadRows("curlHeaderList").map(r => r.k.toLowerCase());
+            [["Content-Type", "application/json"], ["Authorization", "Bearer YOUR_TOKEN"], ["Accept", "application/json"]]
+                .forEach(function (pair) {
+                    if (exists.indexOf(pair[0].toLowerCase()) === -1) { curlAddHeader(pair[0], pair[1]); }
+                });
+            curlBuild();
+        }
+
+        function curlReadRows(listId) {
+            const rows = [];
+            document.querySelectorAll("#" + listId + " .row-item").forEach(function (row) {
+                const cb = row.querySelector(".fileflag-cb");
+                rows.push({
+                    k: row.querySelector("input.k").value.trim(),
+                    v: row.querySelector("input.v").value,
+                    isFile: !!(cb && cb.checked)
+                });
+            });
+            return rows;
+        }
+
+        // ---------- Body 类型切换 ----------
+        function curlOnBodyTypeChange() {
+            const type = document.getElementById("curlBodyType").value;
+            ["curlBodyJsonBox", "curlBodyFormBox", "curlBodyMultipartBox", "curlBodyRawBox"].forEach(function (id) {
+                document.getElementById(id).style.display = "none";
+            });
+            const box = CURL_BODY_TYPES[type].box;
+            if (box) { document.getElementById(box).style.display = "block"; }
+            curlBuild();
+        }
+
+        function curlFormatJson(indent) {
+            const ta = document.getElementById("curlBodyJson");
+            const txt = ta.value.trim();
+            if (!txt) { return; }
+            try {
+                ta.value = JSON.stringify(JSON.parse(txt), null, indent ? 2 : 0);
+                curlBuild();
+            } catch (e) {
+                alert("JSON 解析失败: " + e.message);
+            }
+        }
+
+        function curlClearBody() {
+            document.getElementById("curlBodyJson").value = "";
+            document.getElementById("curlBodyRaw").value = "";
+            document.getElementById("curlBodyFormList").innerHTML = "";
+            document.getElementById("curlBodyMultipartList").innerHTML = "";
+            curlBuild();
+        }
+
+        // ---------- 参数处理 ----------
+        function curlParseUrlParams() {
+            const raw = document.getElementById("curlUrl").value.trim();
+            const qi = raw.indexOf("?");
+            if (qi === -1) { alert("URL 中没有查询参数"); return; }
+            document.getElementById("curlUrl").value = raw.slice(0, qi);
+            document.getElementById("curlParamList").innerHTML = "";
+            new URLSearchParams(raw.slice(qi + 1).split("#")[0]).forEach(function (v, k) {
+                curlAddParam(k, v);
+            });
+            if (!document.querySelectorAll("#curlParamList .row-item").length) { curlAddParam("", ""); }
+            curlBuild();
+        }
+
+        // ---------- 生成 cURL ----------
+        function curlCollect() {
+            const method = document.getElementById("curlMethod").value;
+            const type = document.getElementById("curlBodyType").value;
+            let url = document.getElementById("curlUrl").value.trim();
+
+            const params = curlReadRows("curlParamList").filter(function (r) { return r.k; });
+            if (params.length) {
+                const qs = params.map(function (r) {
+                    return encodeURIComponent(r.k) + "=" + encodeURIComponent(r.v);
+                }).join("&");
+                url += (url.indexOf("?") === -1 ? "?" : "&") + qs;
+            }
+
+            const headers = curlReadRows("curlHeaderList").filter(function (r) {
+                return r.k;
+            }).map(function (r) { return { k: r.k, v: r.v }; });
+
+            const bodyParts = [];
+            if (type === "json") {
+                const txt = document.getElementById("curlBodyJson").value;
+                if (txt.trim() !== "") { bodyParts.push({ flag: "--data-raw", value: txt }); }
+            } else if (type === "xml" || type === "text") {
+                const txt = document.getElementById("curlBodyRaw").value;
+                if (txt.trim() !== "") { bodyParts.push({ flag: "--data-raw", value: txt }); }
+            } else if (type === "form") {
+                curlReadRows("curlBodyFormList").filter(function (r) { return r.k; }).forEach(function (r) {
+                    bodyParts.push({ flag: "--data-urlencode", value: r.k + "=" + r.v });
+                });
+            } else if (type === "multipart") {
+                curlReadRows("curlBodyMultipartList").filter(function (r) { return r.k; }).forEach(function (r) {
+                    bodyParts.push({ flag: "-F", value: r.k + "=" + (r.isFile ? "@" + r.v : r.v) });
+                });
+            }
+
+            const ct = CURL_BODY_TYPES[type].contentType;
+            const hasCt = headers.some(function (h) { return h.k.toLowerCase() === "content-type"; });
+            if (ct && bodyParts.length && !hasCt) { headers.unshift({ k: "Content-Type", v: ct }); }
+
+            const flags = [];
+            if (document.getElementById("curlOptK").checked) { flags.push({ flag: "-k" }); }
+            if (document.getElementById("curlOptL").checked) { flags.push({ flag: "-L" }); }
+            if (document.getElementById("curlOptS").checked) { flags.push({ flag: "-s" }); }
+            if (document.getElementById("curlOptI").checked) { flags.push({ flag: "-i" }); }
+            if (document.getElementById("curlOptCompressed").checked) { flags.push({ flag: "--compressed" }); }
+            const timeout = document.getElementById("curlOptTimeout").value.trim();
+            if (timeout) { flags.push({ flag: "--max-time", value: timeout }); }
+            const proxy = document.getElementById("curlOptProxy").value.trim();
+            if (proxy) { flags.push({ flag: "--proxy", value: proxy }); }
+            const user = document.getElementById("curlOptUser").value.trim();
+            if (user) { flags.push({ flag: "-u", value: user }); }
+
+            return { method: method, url: url, headers: headers, bodyParts: bodyParts, flags: flags };
+        }
+
+        function curlShQuote(s) {
+            return "'" + String(s).replace(/'/g, "'\\''") + "'";
+        }
+        function curlPsQuote(s) {
+            return "'" + String(s).replace(/'/g, "''") + "'";
+        }
+        function curlCmdQuote(s) {
+            return '"' + String(s).replace(/"/g, '\\"') + '"';
+        }
+
+        function curlFormat(c, style) {
+            const q = style === "cmd" ? curlCmdQuote : (style === "ps" ? curlPsQuote : curlShQuote);
+            const parts = [];
+            if (c.method && c.method !== "GET") { parts.push("-X " + c.method); }
+            c.headers.forEach(function (h) { parts.push("-H " + q(h.k + ": " + h.v)); });
+            c.bodyParts.forEach(function (b) { parts.push(b.flag + " " + q(b.value)); });
+            c.flags.forEach(function (f) {
+                parts.push(f.value === undefined ? f.flag : f.flag + " " + q(f.value));
+            });
+
+            const head = "curl" + (style === "ps" ? ".exe" : "") + " " + q(c.url);
+            let sep = " ";
+            if (style === "bash-multi") { sep = " \\" + "\n  "; }
+            else if (style === "cmd") { sep = " ^" + "\n  "; }
+            else if (style === "ps") { sep = " `" + "\n  "; }
+            if (!parts.length) { return head; }
+            return head + sep + parts.join(sep);
+        }
+
+        function curlBuild() {
+            const out = document.getElementById("curlOutput");
+            if (!out) { return; }
+            out.textContent = curlFormat(curlCollect(), document.getElementById("curlStyle").value);
+        }
+
+        // ---------- 复制 ----------
+        function curlCopy() {
+            const text = document.getElementById("curlOutput").textContent;
+            const btn = document.getElementById("curlCopyBtn");
+            const done = function () {
+                btn.textContent = "已复制 \u2713";
+                setTimeout(function () { btn.textContent = "复制"; }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(function () { curlCopyFallback(text, done); });
+            } else {
+                curlCopyFallback(text, done);
+            }
+        }
+
+        function curlCopyFallback(text, done) {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand("copy"); done(); } catch (e) { alert("复制失败，请手动选中复制"); }
+            document.body.removeChild(ta);
+        }
+
+        // ---------- 反向解析 ----------
+        function curlTokenize(s) {
+            const out = [];
+            let cur = "";
+            let inS = false, inD = false;
+            for (let i = 0; i < s.length; i++) {
+                const c = s[i];
+                if (inS) {
+                    if (c === "'") { inS = false; } else { cur += c; }
+                } else if (inD) {
+                    if (c === '"') { inD = false; }
+                    else if (c === "\\" && i + 1 < s.length) { cur += s[++i]; }
+                    else { cur += c; }
+                } else if (c === "'") {
+                    inS = true;
+                } else if (c === '"') {
+                    inD = true;
+                } else if (/\s/.test(c)) {
+                    if (cur !== "") { out.push(cur); cur = ""; }
+                } else {
+                    cur += c;
+                }
+            }
+            if (cur !== "") { out.push(cur); }
+            return out;
+        }
+
+        function curlSetCheck(id, val) {
+            const el = document.getElementById(id);
+            if (el) { el.checked = val; }
+        }
+
+        function curlSetSelect(sel, val) {
+            if (!val) { return; }
+            const has = Array.prototype.some.call(sel.options, function (o) { return o.value === val || o.text === val; });
+            if (!has) { sel.appendChild(new Option(val, val)); }
+            sel.value = val;
+        }
+
+        function curlPrettyJson(txt) {
+            try { return JSON.stringify(JSON.parse(txt), null, 2); } catch (e) { return txt; }
+        }
+
+        function curlParseToForm() {
+            const raw = document.getElementById("curlParseInput").value;
+            if (!raw.trim()) { alert("请先粘贴 cURL 命令"); return; }
+
+            const cleaned = raw
+                .replace(/\\\r?\n/g, " ")
+                .replace(/\^\r?\n/g, " ")
+                .replace(/`\r?\n/g, " ")
+                .replace(/\r?\n/g, " ");
+            const tokens = curlTokenize(cleaned);
+
+            let method = "", url = "", bodyType = "none";
+            const headers = [], form = [], multipart = [], rawBody = [];
+
+            for (let i = 0; i < tokens.length; i++) {
+                const t = tokens[i];
+                const next = function () { return tokens[++i] || ""; };
+                if (t === "curl" || t === "curl.exe") { continue; }
+                if (t === "-X" || t === "--request") { method = next().toUpperCase(); continue; }
+                if (t === "-H" || t === "--header") {
+                    const h = next();
+                    const ci = h.indexOf(":");
+                    if (ci > -1) { headers.push({ k: h.slice(0, ci).trim(), v: h.slice(ci + 1).trim() }); }
+                    continue;
+                }
+                if (t === "-d" || t === "--data" || t === "--data-raw" || t === "--data-binary" || t === "--data-ascii") {
+                    bodyType = "raw";
+                    rawBody.push(next());
+                    continue;
+                }
+                if (t === "--data-urlencode") {
+                    bodyType = "form";
+                    const d = next();
+                    const ci = d.indexOf("=");
+                    form.push(ci > -1 ? { k: d.slice(0, ci), v: d.slice(ci + 1) } : { k: d, v: "" });
+                    continue;
+                }
+                if (t === "-F" || t === "--form") {
+                    bodyType = "multipart";
+                    const d = next();
+                    const ci = d.indexOf("=");
+                    const val = ci > -1 ? d.slice(ci + 1) : "";
+                    multipart.push({ k: ci > -1 ? d.slice(0, ci) : d, v: val, isFile: val.charAt(0) === "@" });
+                    continue;
+                }
+                if (t === "-k" || t === "--insecure") { curlSetCheck("curlOptK", true); continue; }
+                if (t === "-L" || t === "--location") { curlSetCheck("curlOptL", true); continue; }
+                if (t === "-s" || t === "-S" || t === "-sS" || t === "--silent") { curlSetCheck("curlOptS", true); continue; }
+                if (t === "-i" || t === "-I" || t === "--include") { curlSetCheck("curlOptI", true); continue; }
+                if (t === "--compressed") { curlSetCheck("curlOptCompressed", true); continue; }
+                if (t === "--max-time" || t === "-m" || t === "--connect-timeout") {
+                    document.getElementById("curlOptTimeout").value = next();
+                    continue;
+                }
+                if (t === "--proxy" || t === "-x") { document.getElementById("curlOptProxy").value = next(); continue; }
+                if (t === "-u" || t === "--user") { document.getElementById("curlOptUser").value = next(); continue; }
+                if (t.charAt(0) === "-") { continue; }
+                if (!url) { url = t; }
+            }
+
+            // 回填方法
+            const methodSel = document.getElementById("curlMethod");
+            curlSetSelect(methodSel, method || (bodyType === "none" ? "GET" : "POST"));
+
+            // 回填 URL 与查询参数
+            const qi = url.indexOf("?");
+            document.getElementById("curlUrl").value = qi > -1 ? url.slice(0, qi) : url;
+            document.getElementById("curlParamList").innerHTML = "";
+            if (qi > -1) {
+                new URLSearchParams(url.slice(qi + 1).split("#")[0]).forEach(function (v, k) { curlAddParam(k, v); });
+            }
+            if (!document.querySelectorAll("#curlParamList .row-item").length) { curlAddParam("", ""); }
+
+            // 回填 Headers
+            document.getElementById("curlHeaderList").innerHTML = "";
+            headers.forEach(function (h) { curlAddHeader(h.k, h.v); });
+            if (!headers.length) { curlAddHeader("", ""); }
+            const ctHeader = headers.filter(function (h) { return h.k.toLowerCase() === "content-type"; })[0];
+            const ctVal = ctHeader ? ctHeader.v.toLowerCase() : "";
+
+            // 回填 Body
+            document.getElementById("curlBodyFormList").innerHTML = "";
+            document.getElementById("curlBodyMultipartList").innerHTML = "";
+            const sel = document.getElementById("curlBodyType");
+            if (bodyType === "form") {
+                sel.value = "form";
+                form.forEach(function (f) { curlAddBodyRow("form", f.k, f.v); });
+            } else if (bodyType === "multipart") {
+                sel.value = "multipart";
+                multipart.forEach(function (f) { curlAddBodyRow("multipart", f.k, f.v, f.isFile); });
+            } else if (bodyType === "raw") {
+                const txt = rawBody.join("\n");
+                const looksJson = /^[\s]*[{[]/.test(txt);
+                if (ctVal.indexOf("xml") > -1) {
+                    sel.value = "xml";
+                    document.getElementById("curlBodyRaw").value = txt;
+                } else if (looksJson || ctVal.indexOf("json") > -1) {
+                    sel.value = "json";
+                    document.getElementById("curlBodyJson").value = curlPrettyJson(txt);
+                } else {
+                    sel.value = "text";
+                    document.getElementById("curlBodyRaw").value = txt;
+                }
+            } else {
+                sel.value = "none";
+            }
+
+            curlOnBodyTypeChange();
+            curlBuild();
+        }
+
+        /* ===== 文本计算器 ===== */
+        // 把全角符号、乘除号统一成标准运算符，方便直接粘贴
+        function calcNormalize(text) {
+            const map = {
+                "＋": "+", "－": "-", "−": "-", "–": "-", "—": "-",
+                "＊": "*", "×": "*", "✕": "*", "✖": "*", "·": "*",
+                "／": "/", "÷": "/",
+                "（": "(", "）": ")", "【": "(", "】": ")",
+                "．": ".", "　": " "
+            };
+            for (let d = 0; d < 10; d++) map[String.fromCharCode(0xFF10 + d)] = String(d);
+            let out = "";
+            for (const ch of String(text)) out += (map[ch] !== undefined ? map[ch] : ch);
+            return out;
+        }
+
+        // 词法分析：拆成数字、运算符、括号
+        function calcTokenize(expr) {
+            const tokens = [];
+            let i = 0;
+            while (i < expr.length) {
+                const ch = expr[i];
+                if (/\s/.test(ch)) { i++; continue; }
+                if (/[0-9.]/.test(ch)) {
+                    const start = i;
+                    let dots = 0;
+                    while (i < expr.length && /[0-9.]/.test(expr[i])) {
+                        if (expr[i] === "." && ++dots > 1) {
+                            throw new Error('数字格式错误：“' + expr.slice(start, i + 1) + '”');
+                        }
+                        i++;
+                    }
+                    const numText = expr.slice(start, i);
+                    if (numText === ".") throw new Error('数字格式错误：“.”');
+                    tokens.push({ type: "num", value: parseFloat(numText), text: numText });
+                    continue;
+                }
+                if ("+-*/()".indexOf(ch) > -1) {
+                    tokens.push({ type: "op", value: ch });
+                    i++;
+                    continue;
+                }
+                throw new Error('不支持的字符：“' + ch + '”');
+            }
+            return tokens;
+        }
+
+        // 递归下降求值：expr -> term -> unary -> primary
+        function calcParse(tokens) {
+            let pos = 0;
+            function peek() { return tokens[pos]; }
+            function next() { return tokens[pos++]; }
+
+            function parseExpr() {
+                let value = parseTerm();
+                while (peek() && peek().type === "op" && (peek().value === "+" || peek().value === "-")) {
+                    const op = next().value;
+                    const rhs = parseTerm();
+                    value = op === "+" ? value + rhs : value - rhs;
+                }
+                return value;
+            }
+
+            function parseTerm() {
+                let value = parseUnary();
+                while (peek() && peek().type === "op" && (peek().value === "*" || peek().value === "/")) {
+                    const op = next().value;
+                    const rhs = parseUnary();
+                    if (op === "/") {
+                        if (rhs === 0) throw new Error("除数不能为 0");
+                        value = value / rhs;
+                    } else {
+                        value = value * rhs;
+                    }
+                }
+                return value;
+            }
+
+            function parseUnary() {
+                const t = peek();
+                if (t && t.type === "op" && (t.value === "+" || t.value === "-")) {
+                    next();
+                    const v = parseUnary();
+                    return t.value === "-" ? -v : v;
+                }
+                return parsePrimary();
+            }
+
+            function parsePrimary() {
+                const t = peek();
+                if (!t) throw new Error("表达式不完整");
+                if (t.type === "num") { next(); return t.value; }
+                if (t.value === "(") {
+                    next();
+                    const v = parseExpr();
+                    const close = peek();
+                    if (!close || close.value !== ")") throw new Error("括号不匹配：缺少右括号 )");
+                    next();
+                    return v;
+                }
+                if (t.value === ")") throw new Error("括号不匹配：多余的右括号 )");
+                throw new Error('符号位置错误：“' + t.value + '”');
+            }
+
+            if (!tokens.length) throw new Error("请输入算式");
+            const result = parseExpr();
+            if (pos < tokens.length) {
+                const t = tokens[pos];
+                if (t.value === ")") throw new Error("括号不匹配：多余的右括号 )");
+                throw new Error('无法解析：“' + (t.text || t.value) + '”');
+            }
+            return result;
+        }
+
+        // 去掉二进制浮点误差，长整数/极小值用科学计数法
+        function calcFormat(n) {
+            if (Number.isNaN(n)) return "NaN";
+            if (!Number.isFinite(n)) return n > 0 ? "∞" : "-∞";
+            if (n === 0) return "0";
+            const abs = Math.abs(n);
+            if (abs >= 1e16 || abs < 1e-9) {
+                return n.toExponential(10).replace(/\.?0+e/, "e").replace("e+", "e");
+            }
+            return String(Number(n.toPrecision(12)));
+        }
+
+        function calcRun() {
+            const input = document.getElementById("calcInput");
+            const resultEl = document.getElementById("calcResult");
+            const statusEl = document.getElementById("calcStatus");
+            const raw = input.value;
+
+            statusEl.textContent = "";
+            statusEl.className = "calc-status";
+
+            if (!raw.trim()) {
+                resultEl.textContent = "—";
+                resultEl.className = "calc-result";
+                statusEl.textContent = "请先输入算式";
+                statusEl.className = "calc-status err";
+                input.focus();
+                return;
+            }
+
+            try {
+                const value = calcParse(calcTokenize(calcNormalize(raw)));
+                const text = calcFormat(value);
+                resultEl.textContent = text;
+                resultEl.className = "calc-result";
+                statusEl.textContent = "计算完成";
+                statusEl.className = "calc-status ok";
+                calcHistoryAdd(raw, text);
+            } catch (e) {
+                resultEl.textContent = "计算出错";
+                resultEl.className = "calc-result error";
+                statusEl.textContent = e && e.message ? e.message : String(e);
+                statusEl.className = "calc-status err";
+            }
+        }
+
+        function calcClear() {
+            const input = document.getElementById("calcInput");
+            input.value = "";
+            const resultEl = document.getElementById("calcResult");
+            resultEl.textContent = "—";
+            resultEl.className = "calc-result";
+            const statusEl = document.getElementById("calcStatus");
+            statusEl.textContent = "";
+            statusEl.className = "calc-status";
+            input.focus();
+        }
+
+        // Ctrl + Enter 快捷计算
+        function calcShortcut(e) {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                calcRun();
+            }
+        }
+        /* ===== 计算记录（最多 20 条，锁定最多 10 条） ===== */
+        const CALC_HISTORY_KEY = "toolbox.calcHistory.v1";
+        const CALC_HISTORY_LIMIT = 20;
+        const CALC_LOCK_LIMIT = 10;
+        let calcHistory = [];
+
+        function calcHistoryLoad() {
+            calcHistory = [];
+            try {
+                const raw = localStorage.getItem(CALC_HISTORY_KEY);
+                const arr = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(arr)) return;
+                arr.forEach(function (it) {
+                    if (!it || typeof it.expr !== "string" || typeof it.result !== "string") return;
+                    calcHistory.push({
+                        id: it.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+                        expr: it.expr,
+                        result: it.result,
+                        locked: !!it.locked,
+                        time: typeof it.time === "string" ? it.time : ""
+                    });
+                });
+            } catch (e) {
+                calcHistory = [];
+            }
+            // 兜底：历史数据被改坏时，锁定数量也不能超上限
+            let locked = 0;
+            calcHistory.forEach(function (it) {
+                if (it.locked) {
+                    locked++;
+                    if (locked > CALC_LOCK_LIMIT) it.locked = false;
+                }
+            });
+            calcHistoryTrim();
+        }
+
+        function calcHistorySave() {
+            try {
+                localStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(calcHistory));
+            } catch (e) {
+                // 隐私模式或本地文件下不可用时，只保留在内存里
+            }
+        }
+
+        // 超出上限时从最旧的开始删，跳过已锁定的
+        function calcHistoryTrim() {
+            while (calcHistory.length > CALC_HISTORY_LIMIT) {
+                let removed = false;
+                for (let i = calcHistory.length - 1; i >= 0; i--) {
+                    if (!calcHistory[i].locked) {
+                        calcHistory.splice(i, 1);
+                        removed = true;
+                        break;
+                    }
+                }
+                if (!removed) break;
+            }
+        }
+
+        function calcHistoryAdd(expr, result) {
+            const text = String(expr).trim();
+            const top = calcHistory[0];
+            if (top && !top.locked && top.expr === text) {
+                // 同一个算式反复计算时只更新时间，不重复占位
+                top.result = result;
+            } else {
+                const now = new Date();
+                const pad = function (n) { return String(n).padStart(2, "0"); };
+                calcHistory.unshift({
+                    id: now.getTime().toString(36) + Math.random().toString(36).slice(2, 6),
+                    expr: text,
+                    result: result,
+                    locked: false,
+                    time: pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes())
+                });
+            }
+            calcHistoryTrim();
+            calcHistorySave();
+            calcHistoryRender();
+        }
+
+        function calcHistoryRender() {
+            const list = document.getElementById("calcHistoryList");
+            const info = document.getElementById("calcHistoryInfo");
+            const empty = document.getElementById("calcHistoryEmpty");
+            if (!list || !info || !empty) return;
+
+            const lockedCount = calcHistory.filter(function (it) { return it.locked; }).length;
+            info.textContent = calcHistory.length + "/" + CALC_HISTORY_LIMIT + " 条 · 锁定 " + lockedCount + "/" + CALC_LOCK_LIMIT;
+            empty.style.display = calcHistory.length ? "none" : "block";
+
+            // 全部用 DOM 节点渲染，避免把表达式当 HTML 解析
+            list.textContent = "";
+            calcHistory.forEach(function (item) {
+                const row = document.createElement("div");
+                row.className = "hist-item" + (item.locked ? " locked" : "");
+
+                const main = document.createElement("div");
+                main.className = "hist-main";
+
+                const expr = document.createElement("div");
+                expr.className = "hist-expr";
+                expr.textContent = item.expr;
+                expr.title = item.expr;
+
+                const res = document.createElement("div");
+                res.className = "hist-res";
+                res.textContent = "= " + item.result;
+
+                const time = document.createElement("div");
+                time.className = "hist-time";
+                time.textContent = (item.time ? item.time + " · " : "") + (item.locked ? "已锁定" : "未锁定");
+
+                main.appendChild(expr);
+                main.appendChild(res);
+                main.appendChild(time);
+
+                const btns = document.createElement("div");
+                btns.className = "hist-btns";
+
+                btns.appendChild(calcHistBtn("复制", "复制表达式", "hist-btn", function (btn) {
+                    calcCopyText(item.expr, btn);
+                }));
+                btns.appendChild(calcHistBtn(item.locked ? "解锁" : "锁定", item.locked ? "取消锁定" : "锁定后不会被自动删除", item.locked ? "hist-btn lock-on" : "hist-btn", function () {
+                    calcHistoryToggleLock(item.id);
+                }));
+                btns.appendChild(calcHistBtn("删除", "删除这条记录", "hist-btn del", function () {
+                    calcHistoryRemove(item.id);
+                }));
+
+                row.appendChild(main);
+                row.appendChild(btns);
+                list.appendChild(row);
+            });
+        }
+
+        function calcHistBtn(text, title, cls, handler) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = cls;
+            btn.textContent = text;
+            btn.title = title;
+            btn.onclick = function () { handler(btn); };
+            return btn;
+        }
+
+        function calcHistoryToggleLock(id) {
+            const item = calcHistory.find(function (it) { return it.id === id; });
+            if (!item) return;
+            if (!item.locked) {
+                const lockedCount = calcHistory.filter(function (it) { return it.locked; }).length;
+                if (lockedCount >= CALC_LOCK_LIMIT) {
+                    const statusEl = document.getElementById("calcStatus");
+                    if (statusEl) {
+                        statusEl.textContent = "最多锁定 " + CALC_LOCK_LIMIT + " 条，请先解锁其他记录";
+                        statusEl.className = "calc-status err";
+                    }
+                    return;
+                }
+            }
+            item.locked = !item.locked;
+            calcHistorySave();
+            calcHistoryRender();
+        }
+
+        function calcHistoryRemove(id) {
+            const index = calcHistory.findIndex(function (it) { return it.id === id; });
+            if (index < 0) return;
+            calcHistory.splice(index, 1);
+            calcHistorySave();
+            calcHistoryRender();
+        }
+
+        function calcCopyText(text, btn) {
+            const done = function (ok) {
+                if (!btn) return;
+                const old = btn.textContent;
+                btn.textContent = ok ? "已复制" : "复制失败";
+                setTimeout(function () {
+                    btn.textContent = old;
+                }, 1200);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function () { done(true); }, function () {
+                    done(calcCopyFallback(text));
+                });
+            } else {
+                done(calcCopyFallback(text));
+            }
+        }
+
+        // 本地文件（file://）下 clipboard API 可能不可用，退回 execCommand
+        function calcCopyFallback(text) {
+            try {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.setAttribute("readonly", "");
+                ta.style.position = "fixed";
+                ta.style.top = "-1000px";
+                ta.style.opacity = "0";
+                document.body.appendChild(ta);
+                ta.select();
+                const ok = document.execCommand("copy");
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        calendarInit();
+        calcHistoryLoad();
+        calcHistoryRender();
+        curlInit();
+    </script>
+</body>
+</html>
